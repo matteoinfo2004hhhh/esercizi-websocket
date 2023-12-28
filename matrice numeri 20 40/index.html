@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <style type="text/css">
+      .miediv {
+         position: absolute;
+         height: 45px;
+         width: 45px;
+         border-width: 1px;
+         border: solid black;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         cursor: pointer;
+      }
+   </style>
+</head>
+<body>
+   <script>
+      const rows = 10;
+      const cols = 10;
+      const matrix = [];
+
+      let webSocket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+
+      for (let i = 0; i < rows; i++) {
+         matrix[i] = [];
+         for (let j = 0; j < cols; j++) {
+            let newDiv = document.createElement('div');
+            newDiv.setAttribute('class', 'miediv');
+            newDiv.dataset.value = Math.floor(Math.random() * 21) + 20; // Random number between 20 and 40
+            newDiv.innerText = newDiv.dataset.value;
+
+            newDiv.addEventListener('click', () => {
+               newDiv.dataset.value = parseInt(newDiv.dataset.value) + 1;
+               newDiv.innerText = newDiv.dataset.value;
+
+               // Send updated value to the server
+               const row = parseInt(newDiv.dataset.row);
+               const col = parseInt(newDiv.dataset.col);
+               const value = parseInt(newDiv.dataset.value);
+
+               webSocket.send(JSON.stringify({ row, col, value }));
+            });
+
+            matrix[i][j] = newDiv;
+            document.body.appendChild(newDiv);
+
+            let topPosition = (i * 55) + 10;
+            let leftPosition = (j * 55) + 10;
+
+            newDiv.style.top = topPosition + 'px';
+            newDiv.style.left = leftPosition + 'px';
+            newDiv.style.backgroundColor = 'yellow';
+
+            // Set dataset attributes for row, col, and initial value
+            newDiv.dataset.row = i;
+            newDiv.dataset.col = j;
+         }
+      }
+
+      webSocket.onmessage = (event) => {
+         const data = JSON.parse(event.data);
+         const { row, col, value } = data;
+
+         // Update the value in the matrix
+         matrix[row][col].dataset.value = value;
+         matrix[row][col].innerText = value;
+      };
+   </script>
+</body>
+</html>

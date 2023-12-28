@@ -1,0 +1,85 @@
+<html>
+
+<head>
+   <style type="text/css">
+      body {
+         font-family: Arial, sans-serif;
+      }
+
+      .testo {
+         background-color: white;
+         color: blue;
+         height: 30px;
+         width: 150px;
+         text-align: left;
+         font-size: 15px;
+         border-width: 1px;
+         border: solid black;
+         float: left;
+         margin: 5px;
+      }
+
+      .bottone {
+         background-color: blue;
+         color: white;
+         height: 30px;
+         width: 50px;
+         text-align: center;
+         font-size: 15px;
+         border-width: 1px;
+         border: solid white;
+         float: left;
+         margin: 5px;
+      }
+
+      .area {
+         float: left;
+         margin: 5px;
+         background-color: white;
+         color: blue;
+         height: 100px;
+         width: 300px;
+         overflow: auto;
+         text-align: left;
+         font-size: 15px;
+         border-width: 1px;
+         border: solid black;
+         margin: 5px;
+         visibility: visible;
+      }
+   </style>
+
+</head>
+
+<body>
+
+   <textarea id='T' class='area' readonly></textarea>
+   <input type='text' class='testo' id='X' size='10' value=''>
+   <input type='button' class='bottone' id='P' value='invia' onClick='invia(webSocket);'>
+
+</body>
+
+</html>
+
+<script>
+    let webSocket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+    let el, ec;
+    let chi, quanti, cosa;
+    let testo;
+
+    webSocket.onmessage = (event) => {
+       const data = JSON.parse(event.data);
+       const et = document.getElementById('T');
+       testo = data.position.testo;
+       et.value = testo;
+   };
+   
+   function invia(ws) {
+      const ex = document.getElementById('X');
+      let manda = {
+          quale: ex.value
+      }
+      const data = JSON.stringify({'manda': manda});
+      ws.send(data);
+   }
+</script>

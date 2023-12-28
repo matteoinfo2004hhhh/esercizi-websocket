@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <style type="text/css">
+      .miediv {
+         position: absolute;
+         height: 45px;
+         width: 45px;
+         border-width: 1px;
+         border: solid black;
+      }
+   </style>
+</head>
+<body>
+   <script>
+      const rows = 10;
+      const cols = 10;
+      const matrix = [];
+
+      for (let i = 0; i < rows; i++) {
+         matrix[i] = [];
+         for (let j = 0; j < cols; j++) {
+            let newDiv = document.createElement('div');
+            newDiv.setAttribute('class', 'miediv');
+            matrix[i][j] = newDiv;
+            document.body.appendChild(newDiv);
+
+            let topPosition = (i * 55) + 10;
+            let leftPosition = (j * 55) + 10;
+
+            newDiv.style.top = topPosition + 'px';
+            newDiv.style.left = leftPosition + 'px';
+            newDiv.style.backgroundColor = 'yellow';
+         }
+      }
+
+      const div1 = document.createElement('div');
+      div1.setAttribute('class', 'miediv');
+      div1.style.backgroundColor = 'red';
+      document.body.appendChild(div1);
+
+      const div2 = document.createElement('div');
+      div2.setAttribute('class', 'miediv');
+      div2.style.backgroundColor = 'red';
+      document.body.appendChild(div2);
+   </script>
+
+   <script>
+      let webSocket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+      webSocket.onmessage = (event) => {
+         const data = JSON.parse(event.data);
+         let x1 = data.info.posx1;
+         let y1 = data.info.posy1;
+         let x2 = data.info.posx2;
+         let y2 = data.info.posy2;
+
+         div1.style.top = (x1 * 55) + 10 + 'px';
+         div1.style.left = (y1 * 55) + 10 + 'px';
+
+         div2.style.top = (x2 * 55) + 10 + 'px';
+         div2.style.left = (y2 * 55) + 10 + 'px';
+      };
+   </script>
+</body>
+</html>
