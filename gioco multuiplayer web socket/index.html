@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GIoco Multiplayer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #chat-container {
+        width: 100%;
+        height: 1000px;
+        max-width: 500px;
+        padding: 20px;
+        background-color: #ffffff;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        position: fixed; 
+        left: 88%; 
+        top: 50%; 
+        transform: translate(-50%, -50%); 
+        cursor: pointer;
+        z-index: 1;
+        }
+
+        .testo,
+        .bottone,
+        .area {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .testo, .bottone {
+            display: inline-block;
+        }
+
+        .testo {
+            height: 40px;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .bottone {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 8px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .bottone:hover {
+            background-color: #0056b3;
+        }
+
+        .area {
+            height: 200px;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        #username {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
+
+    </style>
+</head>
+
+
+        <body onload="startGame()"></body>
+        <div  id="d" style="position: relative; left: 850px; top: 90px;height: 50px;width: 90px;">
+             <style>
+    canvas {
+        position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: black;
+   }
+             </style>
+                <button class="bottone" id="P" style="position: absolute;width: 300px;height: 100px;font-size: 30px;" onclick="invia2(webSocket)">Manda il tuo record</button>
+            
+        </div>
+
+    <div id="chat-container">
+        <h1 id="welcome-message"></h1>
+        <div id="username"></div>
+        <h3>CHAT</h3>
+        <textarea id="T" class="area" readonly></textarea>
+        <input type="text" class="testo" id="X" size="10" placeholder="Inserisci il messaggio">
+        <button class="bottone" id="P" onclick="invia(webSocket)">Invia</button>
+    </div>
+
+
+<script src="server.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let webSocket = new WebSocket(location.origin.replace(/^http/, 'ws'));
+let testo;
+
+webSocket.onmessage = (event) => {
+const data = JSON.parse(event.data);
+const et = document.getElementById('T');
+testo = data.position.testo;
+et.value = testo;
+};
+
+function invia(ws) {
+const ex = document.getElementById('X');
+let message = ex.value;
+message = eliminaopaloreo(message);
+let manda = {
+    quale: message
+}
+const data = JSON.stringify({'manda': manda});
+ws.send(data);
+ex.value = ' ';
+}
+
+function invia2(ws) {
+const ex = document.getElementById('X');
+let message = ex.value;
+message = eliminaopaloreo(message);
+let manda = {
+    quale: message
+}
+const data = JSON.stringify({'manda': manda});
+ws.send(data);
+ex.value = ' mio recored:'+myGameArea.frameNo;
+}
+
+
+function eliminaopaloreo(message) {
+const profanityList = ['cazzo', 'vaffanculo', 'merda'];
+profanityList.forEach((word) => {
+const regex = new RegExp(word, 'gi');
+message = message.replace(regex, '*'.repeat(word.length));
+});
+return message;
+}
+
+//codice del gioco
+var myGamePiece;
+var ball1 = [];
+var ball2 = [];
+var ball3 = [];
+var ball4 = [];
+var ball5 = [];
+var ball6 = [];
+var gameover;
+var myScore;
+        
+function startGame() {
+    myGamePiece = new component(20, 20, "white", 10, 120);
+    myScore = new component("30px", "Consolas", "white", 10, 40, "text");
+    gameover = new component("30px","Consolas","red", 350, 300,"text");
+    myGameArea.start();
+    document.getElementById("d").style.display="none";
+}
+        
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+    this.canvas.width = 890;
+    this.canvas.height = 650;
+    this.frameNo=0;
+    this.context = this.canvas.getContext("2d");
+    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    this.interval = setInterval(updateGameArea, 20);
+    window.addEventListener('keydown', function (e) {
+        myGameArea.keys = (myGameArea.keys || []);
+        myGameArea.keys[e.keyCode] = (e.type == "keydown");
+    })
+    window.addEventListener('keyup', function (e) {
+    myGameArea.keys[e.keyCode] = (e.type == "keydown");            
+    })
+            }, 
+            clear : function(){
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+    }
+        
+        function component(width, height, color, x, y, type) {
+            this.type = type;
+            this.width = width;
+            this.height = height;
+            this.speedX = 0;
+            this.speedY = 0;    
+            this.x = x;
+            this.y = y;    
+            this.update = function() {
+                ctx = myGameArea.context;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, 2 * Math.PI);
+                ctx.fill();
+        
+                if (this.type == "text") {
+                ctx.font = this.width + " " + this.height;
+                ctx.fillStyle = color;
+                ctx.fillText(this.text, this.x, this.y);
+                } else {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, 2 * Math.PI);
+                ctx.fill();
+                }
+            }
+        
+            this.newPos = function() {
+                this.x += this.speedX;
+                this.y += this.speedY;        
+            }    
+            this.crashWith = function(otherobj) {
+                var myleft = this.x;
+                var myright = this.x + (this.width);
+                var mytop = this.y;
+                var mybottom = this.y + (this.height);
+                var otherleft = otherobj.x;
+                var otherright = otherobj.x + (otherobj.width);
+                var othertop = otherobj.y;
+                var otherbottom = otherobj.y + (otherobj.height);
+                var crash = true;
+                if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+                    crash = false;
+                }
+                return crash;
+            }
+        }
+        
+        function updateGameArea() {
+            var x, y;
+            myGameArea.clear();
+            myGameArea.frameNo += 1;
+            myGamePiece.speedX = 0;
+            myGamePiece.speedY = 0;    
+
+            //generazioni nemici qualndo il player tocca
+            for (i = 0; i < ball1.length; i += 1) {
+            if (myGamePiece.crashWith(ball1[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+
+            for (i = 0; i < ball2.length; i += 1) {
+            if (myGamePiece.crashWith(ball2[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+
+
+            for (i = 0; i < ball3.length; i += 1) {
+            if (myGamePiece.crashWith(ball3[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+
+            for (i = 0; i < ball4.length; i += 1) {
+            if (myGamePiece.crashWith(ball4[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+
+            for (i = 0; i < ball5.length; i += 1) {
+            if (myGamePiece.crashWith(ball5[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+
+            for (i = 0; i < ball6.length; i += 1) {
+            if (myGamePiece.crashWith(ball6[i])) {
+            document.getElementById("d").style.display="block";
+            gameover.update();
+            myGameArea.stop();
+            return;
+            } 
+            }
+        
+            //movimento giocatori
+            if (myGameArea.keys && myGameArea.keys[37]) {myGamePiece.speedX = -10; }
+            if (myGameArea.keys && myGameArea.keys[39]) {myGamePiece.speedX = 10; }
+            if (myGameArea.keys && myGameArea.keys[38]) {myGamePiece.speedY = -10; }
+            if (myGameArea.keys && myGameArea.keys[40]) {myGamePiece.speedY = 10; }
+        
+            if(myGamePiece.x>2290){
+                myGamePiece.speedX = -10;
+            }
+        
+            if(myGamePiece.x<0){
+                myGamePiece.speedX = +10;
+            }
+        
+            if(myGamePiece.y>650){
+                myGamePiece.speedY = -10;
+            }
+        
+            if(myGamePiece.y<0){
+                myGamePiece.speedY = +10;
+            }
+        
+            if (myGameArea.frameNo == 1 || everyinterval(80)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width;
+                y = myGameArea.canvas.height - num;
+                ball1.push(new component(20, 20, "red", x, y));
+            }
+
+           if(myGameArea.frameNo>400){
+            if (myGameArea.frameNo == 1 || everyinterval(80)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width;
+                y = myGameArea.canvas.height - num;
+                ball2.push(new component(50, 50, "yellow", x, y));
+            }
+           }
+
+           if(myGameArea.frameNo>400){
+            if (myGameArea.frameNo == 1 || everyinterval(80)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width -num;
+                y = myGameArea.canvas.height ;
+                ball3.push(new component(20, 20, "blue", x, y));
+            }
+           }
+
+           if(myGameArea.frameNo>400){
+            if (myGameArea.frameNo == 1 || everyinterval(80)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width -2000;
+                y = myGameArea.canvas.height - num;
+                ball4.push(new component(20, 20, "lime", x, y));
+            }
+           }
+
+           if(myGameArea.frameNo>700){
+            if (myGameArea.frameNo == 1 || everyinterval(80)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width - num;
+                y = myGameArea.canvas.height - 900;
+                ball5.push(new component(20, 20, "#00FFF7", x, y));
+            }
+           }
+
+           if(myGameArea.frameNo>800){
+            if (myGameArea.frameNo == 1 || everyinterval(400)) {
+                num=Math.floor(Math.random()*700)+10;
+                x = myGameArea.canvas.width;
+                y = myGameArea.canvas.height - num;
+                ball6.push(new component(100, 150, "orange", x, y));
+            }
+           }
+
+
+      
+           
+            for (i = 0; i < ball1.length; i += 1) {
+                ball1[i].x += -2;
+                ball1[i].update();
+            }
+
+            for (i = 0; i < ball2.length; i += 1) {
+                ball2[i].x += -3;
+                ball2[i].update();
+            }
+
+            for (i = 0; i < ball3.length; i += 1) {
+                ball3[i].y += -3;
+                ball3[i].update();
+            }
+
+            for (i = 0; i < ball4.length; i += 1) {
+                ball4[i].x += 3;
+                ball4[i].update();
+            }
+
+            for (i = 0; i < ball5.length; i += 1) {
+                ball5[i].y += 3;
+                ball5[i].update();
+            }
+
+            for (i = 0; i < ball6.length; i += 1) {
+                ball6[i].x += -1;
+                ball6[i].update();
+            }
+
+            myScore.text = "PUNTEGGIO: " + myGameArea.frameNo;
+            gameover.text = "HAI PERSO";
+            myScore.update();
+            myGamePiece.newPos();    
+            myGamePiece.update();
+        }
+        function everyinterval(n) {
+            if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+            return false;
+        }
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+   console.log(`Server listening on port ${PORT}`);
+})
+
+
+
+
+</script>
+
+</body>
+</html>
